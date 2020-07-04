@@ -1,0 +1,5 @@
+beautifulsoup4==4.9.1
+lxml==4.5.1
+requests==2.21.0
+python-dotenv==0.14.0
+google-cloud-storage==1.29.0
