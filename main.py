@@ -30,11 +30,11 @@ def check_gcs_chatlog_exists(channel_id, video_id):
     bucket = client.get_bucket(bucket_name)
     blob = bucket.get_blob(file_path)
     if blob is None:
-        return(False)
+        return('not exists')
     elif blob.size == 0:
-        return(False)
+        return('not exists')
     else:
-        return(True)
+        return('exists')
 
 def upload_gcs_chatlog(result, channel_id, video_id):
     file_path = channel_id + '/livechatconvertlog' + video_id + '.json'
@@ -45,20 +45,22 @@ def upload_gcs_chatlog(result, channel_id, video_id):
     blob.upload_from_string('\n'.join(result))
     print("GCS upload success!!")
 
-def main(data, context):
-    video_id = data['attributes']['video_id']
-    channel_id = data['attributes']['channel_id']
-    comment_data = YoutubeChatReplayCrawler.YoutubeChatReplayCrawler(video_id)
-    if comment_data:
-        result = chatReplayConverter.chatReplayConverter(comment_data, video_id)
-        if result:
-            upload_gcs_chatlog(result, channel_id, video_id)
+def main(event, context):
+    # triggered by Pub/sub
+    video_id = event['attributes']['video_id']
+    channel_id = event['attributes']['channel_id']
+    if check_gcs_chatlog_exists(channel_id, video_id) == 'not exists':
+        comment_data = YoutubeChatReplayCrawler.YoutubeChatReplayCrawler(video_id)
+        if comment_data:
+            result = chatReplayConverter.chatReplayConverter(comment_data, video_id)
+            if result:
+                upload_gcs_chatlog(result, channel_id, video_id)
 
 if __name__ == '__main__':
     attributes = {}
     attributes['channel_id'] = sys.argv[1]
     attributes['video_id'] = sys.argv[2]
-    data = {}
-    data['attributes'] = attributes
-    main(data, "")
+    event = {}
+    event['attributes'] = attributes
+    main(event, "")
 
