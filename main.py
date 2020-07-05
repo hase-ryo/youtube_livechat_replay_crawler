@@ -56,7 +56,7 @@ def main(event, context):
         video_id = event['attributes']['video_id']
         channel_id = event['attributes']['channel_id']
         exist_check = check_gcs_chatlog_exists(channel_id, video_id)
-        print(exist_check + video_id)
+        print(exist_check + " " + video_id)
         if exist_check == 'not exists':
             comment_data = YoutubeChatReplayCrawler.YoutubeChatReplayCrawler(video_id)
             if comment_data:
