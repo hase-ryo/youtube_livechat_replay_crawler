@@ -1,5 +1,5 @@
 .gcloudignore
-.git
+.git/
 .gitignore
 .env
 .env.yaml
