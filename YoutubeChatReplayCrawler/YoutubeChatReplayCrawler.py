@@ -73,7 +73,6 @@ def YoutubeChatReplayCrawler(video_id):
 
             # Extract the data for each live chat comment.
             for samp in dics["continuationContents"]["liveChatContinuation"]["actions"][1:]:
-                # comment_data.append(str(samp) + "\n")
                 comment_data.append(str(samp))
 
         # next_urlが入手できなくなったら終わり
