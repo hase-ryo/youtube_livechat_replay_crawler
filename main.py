@@ -69,8 +69,8 @@ def main(event, context):
 
 if __name__ == '__main__':
     attributes = {}
-    attributes['channel_id'] = sys.argv[1].encode('utf-8')
-    attributes['video_id'] = sys.argv[2].encode('utf-8')
+    attributes['channel_id'] = sys.argv[1]
+    attributes['video_id'] = sys.argv[2]
     event = {}
     event['attributes'] = attributes
     event['data'] = 'untouched_video_id'.encode('utf-8')
