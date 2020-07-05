@@ -5,6 +5,7 @@ import ast
 import requests
 import re
 import sys
+import json
 
 def dict_str_to_dic(dict_str):
     # Capitalize booleans so JSON is valid Python dict.
@@ -37,7 +38,6 @@ def YoutubeChatReplayCrawler(video_id):
         if("live_chat_replay" in iframe["src"]):
             next_url = iframe["src"]
             print('Found first URL in iframe[src]')
-            print(next_url)
             break
     if next_url == '':
         for script in soup.find_all('script'):
@@ -49,7 +49,6 @@ def YoutubeChatReplayCrawler(video_id):
                     continue_url = dics["contents"]["twoColumnWatchNextResults"]["conversationBar"]["liveChatRenderer"]["continuations"][0]["reloadContinuationData"]["continuation"]
                     next_url = next_url_prefix + continue_url
                     print('Found first URL in liveChatRenderer')
-                    print(next_url)
                     break
     if next_url == '':
         # 2つの方法を試して見つからなかったら諦める
@@ -71,8 +70,6 @@ def YoutubeChatReplayCrawler(video_id):
 
             continue_url = dics["continuationContents"]["liveChatContinuation"]["continuations"][0]["liveChatReplayContinuationData"]["continuation"]
             next_url = next_url_prefix + continue_url
-            print('Found another live chat continuation:')
-            print(next_url)
 
             # Extract the data for each live chat comment.
             for samp in dics["continuationContents"]["liveChatContinuation"]["actions"][1:]:

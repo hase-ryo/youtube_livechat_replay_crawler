@@ -25,7 +25,7 @@ attributeに以下二つの指定が必要です
 
 .envに記載してください
 
-## SERVICE_ACCOUNT_CREDENTIAL_FILE
+## GOOGLE_APPLICATION_CREDENTIALS
 
 ローカルで動作させる場合はGCSのread, write権限をもつサービスアカウントのCredential fileが必要です。
 credential file.jsonはsecret/配下においてください。
