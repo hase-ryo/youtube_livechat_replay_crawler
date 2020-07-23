@@ -30,29 +30,37 @@ def YoutubeChatReplayCrawler(video_id):
     next_url = ''
     dics = {}
     comment_data = []
+    retry_count = 0
     session = requests.Session()
 
-    html = session.get(target_url, headers=headers)
-    soup = BeautifulSoup(html.text, 'html.parser')
-    for iframe in soup.find_all("iframe"):
-        if("live_chat_replay" in iframe["src"]):
-            next_url = iframe["src"]
-            print('Found first URL in iframe[src]')
+    while(retry_count < 3):
+        html = session.get(target_url, headers=headers)
+        soup = BeautifulSoup(html.text, 'html.parser')
+        for iframe in soup.find_all("iframe"):
+            if("live_chat_replay" in iframe["src"]):
+                next_url = iframe["src"]
+                print('Found first URL in iframe[src]')
+                break
+        if next_url == '':
+            for script in soup.find_all('script'):
+                script_text = str(script)
+                if 'ytInitialData' in script_text:
+                    if 'liveChatRenderer' in script_text:
+                        dict_str = ''.join(script_text.split(" = ")[1:]).split('\n')[0]
+                        dics = dict_str_to_dic(dict_str)
+                        continue_url = dics["contents"]["twoColumnWatchNextResults"]["conversationBar"]["liveChatRenderer"]["continuations"][0]["reloadContinuationData"]["continuation"]
+                        next_url = next_url_prefix + continue_url
+                        print('Found first URL in liveChatRenderer')
+                        break
+        if next_url == '':
+            print("Cannot find continuation url. lets retry")
+            retry_count += 1
+            continue
+        else:
             break
+
     if next_url == '':
-        for script in soup.find_all('script'):
-            script_text = str(script)
-            if 'ytInitialData' in script_text:
-                if 'liveChatRenderer' in script_text:
-                    dict_str = ''.join(script_text.split(" = ")[1:]).split('\n')[0]
-                    dics = dict_str_to_dic(dict_str)
-                    continue_url = dics["contents"]["twoColumnWatchNextResults"]["conversationBar"]["liveChatRenderer"]["continuations"][0]["reloadContinuationData"]["continuation"]
-                    next_url = next_url_prefix + continue_url
-                    print('Found first URL in liveChatRenderer')
-                    break
-    if next_url == '':
-        # 2つの方法を試して見つからなかったら諦める
-        print("Cannot find continuation url")
+        print("Cannot find continuation url. exit")
         return(comment_data) # return empty list
 
     while(1):

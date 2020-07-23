@@ -68,11 +68,14 @@ def main(event, context):
     print("{0}".format(elapsed_time) + " sec")
 
 if __name__ == '__main__':
-    attributes = {}
-    attributes['channel_id'] = sys.argv[1]
-    attributes['video_id'] = sys.argv[2]
-    event = {}
-    event['attributes'] = attributes
-    event['data'] = base64.b64encode('untouched_video_id'.encode('utf-8'))
-    main(event, "")
+    # 手動で起動した場合はvideo_idのリストを受け取って直接取りにいく
+    channel_id = sys.argv[1]
+    video_ids = sys.argv[2].split(',')
+    for video_id in video_ids:
+        comment_data = YoutubeChatReplayCrawler.YoutubeChatReplayCrawler(video_id)
+        if comment_data:
+            result = chatReplayConverter.chatReplayConverter(comment_data, video_id)
+            if result:
+                upload_gcs_chatlog(result, channel_id, video_id)
+
 
