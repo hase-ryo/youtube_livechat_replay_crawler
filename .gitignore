@@ -1,4 +1,4 @@
 secret/
 .env
 .env.yaml
-YoutubeChatReplayCrawler/__pycache__/
+__pycache__/

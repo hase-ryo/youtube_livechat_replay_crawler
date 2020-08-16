@@ -1,0 +1,3 @@
+[submodule "gcs_wrapper"]
+	path = gcs_wrapper
+	url = git@github.com:hase-ryo/gcs_wrapper.git

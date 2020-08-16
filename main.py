@@ -5,7 +5,8 @@ import os
 import time
 import base64
 from dotenv import load_dotenv
-from YoutubeChatReplayCrawler import YoutubeChatReplayCrawler, chatReplayConverter
+from YoutubeChatReplayCrawler import get_chat_replay_data, LiveChatReplayDisabled, ContinuationURLNotFound
+from gcs_wrapper import gcs_wrapper
 from google.cloud import storage as gcs
 
 
@@ -15,67 +16,42 @@ if platform.system() == 'Darwin':
 
 bucket_name = os.environ.get("GCS_BUCKET_NAME")
 
-def get_gcs_client():
-    if platform.system() == 'Linux':
-        # run at cloud
-        client = gcs.Client()
-    elif platform.system() == 'Darwin':
-        # run locally
-        load_dotenv('.env')
-        client = gcs.Client.from_service_account_json(os.environ.get("GOOGLE_APPLICATION_CREDENTIALS"))
-
-    return(client)
-
-def check_gcs_chatlog_exists(channel_id, video_id):
-    file_path = channel_id + '/livechatconvertlog' + video_id + '.json'
-
-    client = get_gcs_client()
-    bucket = client.get_bucket(bucket_name)
-    blob = bucket.get_blob(file_path)
-    if blob is None:
-        return('not exists')
-    elif blob.size == 0:
-        return('not exists')
-    else:
-        return('exists')
-
-def upload_gcs_chatlog(result, channel_id, video_id):
-    file_path = channel_id + '/livechatconvertlog' + video_id + '.json'
-
-    client = get_gcs_client()
-    bucket = client.get_bucket(bucket_name)
-    blob = bucket.blob(file_path)
-    blob.upload_from_string('\n'.join(result))
-    print("GCS upload success!!")
-
 def main(event, context):
-    # triggered by Pub/sub
+    # Pub/subからトリガーを受け取る
     start = time.time()
     data = base64.b64decode(event['data']).decode('utf-8')
     if data == 'untouched_video_id':
         video_id = event['attributes']['video_id']
         channel_id = event['attributes']['channel_id']
-        exist_check = check_gcs_chatlog_exists(channel_id, video_id)
-        print(exist_check + " " + video_id)
-        if exist_check == 'not exists':
-            comment_data = YoutubeChatReplayCrawler.YoutubeChatReplayCrawler(video_id)
+        if gcs_wrapper.check_gcs_file_exists(bucket_name, channel_id + '/livechatconvertlog' + video_id + '.json'):
+            print(video_id + " is already exist. End")
+        else:
+            try:
+                comment_data = get_chat_replay_data(video_id)
+            except LiveChatReplayDisabled:
+                print(video_id + " is disabled Livechat replay, create blank list")
+                comment_data = []
             if comment_data:
-                result = chatReplayConverter.chatReplayConverter(comment_data, video_id)
-                if result:
-                    upload_gcs_chatlog(result, channel_id, video_id)
+                gcs_wrapper.upload_gcs_file_from_dictlist(bucket_name, channel_id + '/livechatconvertlog' + video_id + '.json', comment_data)
 
     elapsed_time = time.time() - start
     print("{0}".format(elapsed_time) + " sec")
 
 if __name__ == '__main__':
     # 手動で起動した場合はvideo_idのリストを受け取って直接取りにいく
+    # 既存かどうかも気にせず再取得
+    start = time.time()
     channel_id = sys.argv[1]
     video_ids = sys.argv[2].split(',')
     for video_id in video_ids:
-        comment_data = YoutubeChatReplayCrawler.YoutubeChatReplayCrawler(video_id)
+        try:
+            comment_data = get_chat_replay_data(video_id)
+        except LiveChatReplayDisabled:
+            print(video_id + " is disabled Livechat replay, create blank list")
+            comment_data = []
         if comment_data:
-            result = chatReplayConverter.chatReplayConverter(comment_data, video_id)
-            if result:
-                upload_gcs_chatlog(result, channel_id, video_id)
+            gcs_wrapper.upload_gcs_file_from_dictlist(bucket_name, channel_id + '/livechatconvertlog' + video_id + '.json', comment_data)
+    elapsed_time = time.time() - start
+    print("{0}".format(elapsed_time) + " sec")
 
 

@@ -4,3 +4,7 @@
 .env
 .env.yaml
 secret/
+__pycache__/
+deploy.sh
+gcs_wrapper/secret/
+gcs_wrapper/.env
