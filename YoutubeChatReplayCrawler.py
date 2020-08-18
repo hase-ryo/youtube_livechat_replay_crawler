@@ -118,6 +118,7 @@ def get_chat_replay_data(video_id):
         print("Unexpected error:" + str(sys.exc_info()[0]))
 
     count = 1
+    pagecount = 1
     while(1):
         if not continuation:
             break
@@ -143,6 +144,7 @@ def get_chat_replay_data(video_id):
                     count += 1
 
             continuation = get_continuation(ytInitialData)
+            pagecount += 1
 
         except requests.ConnectionError:
             print("Connection Error")
@@ -171,4 +173,5 @@ def get_chat_replay_data(video_id):
             print(e)
             break
 
+    print(video_id + " found " + ("%05d" % pagecount) + " pages")
     return(result)
