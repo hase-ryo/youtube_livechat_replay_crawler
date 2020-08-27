@@ -1,4 +1,10 @@
 secret/
-.env
-.env.yaml
 __pycache__/
+channel_video_list/.env
+channel_video_list/.env.yaml
+untouched_video_checker/.env
+untouched_video_checker/.env.yaml
+initial_livechat_check/.env
+initial_livechat_check/.env.yaml
+continuation_livechat_crawler/.env
+continuation_livechat_crawler/.env.yaml

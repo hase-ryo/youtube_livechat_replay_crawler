@@ -1,24 +1,31 @@
-#!/usr/bin/env python3
-
+import platform
+import json
+import sys
+import os
+import time
+import base64
+from dotenv import load_dotenv
+from gcs_wrapper import gcs_wrapper
+from google.cloud import pubsub_v1
 from bs4 import BeautifulSoup
 import requests
-import re
-import sys
-import json
-from retry import retry
 
 
-class ContinuationURLNotFound(Exception):
-    pass
+if platform.system() == 'Darwin':
+    # run locally
+    load_dotenv('.env')
 
-class LiveChatReplayDisabled(Exception):
+bucket_name = os.environ.get("GCS_BUCKET_NAME")
+pubsub_topic = os.environ.get("PUBSUB_TOPIC")
+project_id = os.environ.get("PROJECT_ID")
+
+class RestrictedFromYoutube(Exception):
     pass
 
 def get_ytInitialData(target_url, session):
     headers = {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'}
     html = session.get(target_url, headers=headers)
     soup = BeautifulSoup(html.text, 'html.parser')
-
     for script in soup.find_all('script'):
         script_text = str(script)
         if 'ytInitialData' in script_text:
@@ -26,44 +33,16 @@ def get_ytInitialData(target_url, session):
                 if 'ytInitialData' in line:
                     return(json.loads(line.strip()[len('window["ytInitialData"] = '):-1]))
 
+    if 'Sorry for the interruption. We have been receiving a large volume of requests from your network.' in str(soup):
+        print("restricted from Youtube (Rate limit)")
+        raise RestrictedFromYoutube
+
+    print("Cannot get ytInitialData")
+    return(None)
+
 def get_continuation(ytInitialData):
     continuation = ytInitialData['continuationContents']['liveChatContinuation']['continuations'][0].get('liveChatReplayContinuationData', {}).get('continuation')
     return(continuation)
-
-def check_livechat_replay_disable(ytInitialData):
-    conversationBarRenderer = ytInitialData['contents']['twoColumnWatchNextResults']['conversationBar'].get('conversationBarRenderer', {})
-    if conversationBarRenderer:
-        if conversationBarRenderer['availabilityMessage']['messageRenderer']['text']['runs'][0]['text'] == 'この動画ではチャットのリプレイを利用できません。':
-            return(True)
-
-@retry(ContinuationURLNotFound, tries=3, delay=1)
-def get_initial_continuation(target_url,session):
-
-    ytInitialData = get_ytInitialData(target_url, session)
-
-    if check_livechat_replay_disable(ytInitialData):
-        print("LiveChat Replay is disable")
-        raise LiveChatReplayDisabled
-
-    continue_dict = {}
-    continuations = ytInitialData['contents']['twoColumnWatchNextResults']['conversationBar']['liveChatRenderer']['header']['liveChatHeaderRenderer']['viewSelector']['sortFilterSubMenuRenderer']['subMenuItems']
-    for continuation in continuations:
-        continue_dict[continuation['title']] = continuation['continuation']['reloadContinuationData']['continuation']
-
-    continue_url = continue_dict.get('Live chat repalay')
-    if not continue_url:
-        continue_url = continue_dict.get('上位のチャットのリプレイ')
-
-    if not continue_url:
-        continue_url = continue_dict.get('チャットのリプレイ')
-
-    if not continue_url:
-        continue_url = ytInitialData["contents"]["twoColumnWatchNextResults"]["conversationBar"]["liveChatRenderer"]["continuations"][0].get("reloadContinuationData", {}).get("continuation")
-
-    if not continue_url:
-        raise ContinuationURLNotFound
-
-    return(continue_url)
 
 def convert_chatreplay(renderer):
     chatlog = {}
@@ -98,34 +77,26 @@ def convert_chatreplay(renderer):
 
     return(chatlog)
 
-def get_chat_replay_data(video_id):
-    youtube_url = "https://www.youtube.com/watch?v="
-    target_url = youtube_url + video_id
-    continuation_prefix = "https://www.youtube.com/live_chat_replay?continuation="
-    result = []
-    session = requests.Session()
-    continuation = ""
-
-    try:
-        continuation = get_initial_continuation(target_url, session)
-    except LiveChatReplayDisabled:
-        print(video_id + " is disabled Livechat replay")
-        raise LiveChatReplayDisabled
-    except ContinuationURLNotFound:
-        print(video_id + " can not find continuation url")
-        raise ContinuationURLNotFound
-    except Exception:
-        print("Unexpected error:" + str(sys.exc_info()[0]))
-
+def get_chat_replay_from_continuation(video_id, continuation):
     count = 1
     pagecount = 1
-    while(1):
+    continuation_prefix = "https://www.youtube.com/live_chat_replay?continuation="
+    session = requests.Session()
+    result = []
+    while(pagecount < 200):
         if not continuation:
+            print("continuation is None. maybe hit the last chat segment")
             break
 
         try:
             ytInitialData = get_ytInitialData(continuation_prefix + continuation, session)
+            if not ytInitialData:
+                continuation = None
+                print("Cannot get ytInitialData")
+                break
+
             if not 'actions' in ytInitialData['continuationContents']['liveChatContinuation']:
+                continuation = None
                 break
             for action in ytInitialData['continuationContents']['liveChatContinuation']['actions']:
                 if not 'addChatItemAction' in action['replayChatItemAction']['actions'][0]:
@@ -168,10 +139,50 @@ def get_chat_replay_data(video_id):
             break
         except KeyboardInterrupt:
             break
+        except RestrictedFromYoutube:
+            print("Restricted from Youtube, Rate limit")
+            break
         except Exception as e:
             print("Unexpected error:" + str(sys.exc_info()[0]))
             print(e)
             break
 
-    print(video_id + " found " + ("%05d" % pagecount) + " pages")
-    return(result)
+    print(video_id + " found " + ("%03d" % pagecount) + " pages")
+    return(result, continuation)
+
+def main(event, context):
+    start = time.time()
+    data = base64.b64decode(event['data']).decode('utf-8')
+    if data == 'continuation':
+        continuation = event['attributes']['continuation']
+        video_id = event['attributes']['video_id']
+        channel_id = event['attributes']['channel_id']
+        filepath = channel_id + '/' + video_id + '/' + continuation + '.json'
+        print(continuation)
+        comment_data, new_continuation = get_chat_replay_from_continuation(video_id, continuation)
+        if comment_data:
+            gcs_wrapper.upload_gcs_file_from_dictlist(bucket_name, filepath, comment_data)
+        if new_continuation:
+            if continuation != new_continuation:
+                publisher = pubsub_v1.PublisherClient()
+                topic_path = publisher.topic_path(project_id, pubsub_topic)
+                future = publisher.publish(topic_path, "continuation".encode('utf-8'), continuation=new_continuation, channel_id=channel_id, video_id=video_id)
+
+    elapsed_time = time.time() - start
+    print("{0}".format(elapsed_time) + " sec")
+
+if __name__ == '__main__':
+    start = time.time()
+    channel_id = sys.argv[1]
+    video_id = sys.argv[2]
+    continuation = sys.argv[3]
+    filepath = channel_id + '/' + video_id + '/' + continuation + '.json'
+    comment_data, new_continuation = get_chat_replay_from_continuation(video_id, continuation)
+    if comment_data:
+        gcs_wrapper.upload_gcs_file_from_dictlist(bucket_name, filepath, comment_data)
+        continuation = new_continuation
+
+    elapsed_time = time.time() - start
+    print("{0}".format(elapsed_time) + " sec")
+
+

@@ -1,0 +1,6 @@
+.gcloudignore
+.env
+.env.yaml
+__pycache__/
+deploy.sh
+gcs_wrapper/__pycache__/

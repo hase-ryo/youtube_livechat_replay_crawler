@@ -1,3 +1,12 @@
-[submodule "gcs_wrapper"]
-	path = gcs_wrapper
+[submodule "initial_livechat_check/gcs_wrapper"]
+	path = initial_livechat_check/gcs_wrapper
+	url = git@github.com:hase-ryo/gcs_wrapper.git
+[submodule "channel_video_list/gcs_wrapper"]
+	path = channel_video_list/gcs_wrapper
+	url = git@github.com:hase-ryo/gcs_wrapper.git
+[submodule "untouched_video_checker/gcs_wrapper"]
+	path = untouched_video_checker/gcs_wrapper
+	url = git@github.com:hase-ryo/gcs_wrapper.git
+[submodule "continuation_livechat_crawler/gcs_wrapper"]
+	path = continuation_livechat_crawler/gcs_wrapper
 	url = git@github.com:hase-ryo/gcs_wrapper.git
