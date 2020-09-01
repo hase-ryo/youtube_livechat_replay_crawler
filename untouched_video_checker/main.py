@@ -28,7 +28,6 @@ def check_chatlog_exist(channel_id):
     chatlog_list = gcs_wrapper.get_gcs_files(bucket_name_out, prefix)
     clist = []
     for chatlog in chatlog_list:
-        # clist.append(videofile.split('/')[1].replace('livechatconvertlog','').replace('.json',''))
         clist.append(chatlog.split('/')[1])
     video_ids = list(set(clist))
 

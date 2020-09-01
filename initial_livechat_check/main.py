@@ -15,6 +15,7 @@ if platform.system() == 'Darwin':
     load_dotenv('.env')
 
 bucket_name = os.environ.get("GCS_BUCKET_NAME")
+bucket_name_in = os.environ.get("GCS_BUCKET_NAME_IN")
 pubsub_topic = os.environ.get("PUBSUB_TOPIC_OUT")
 project_id = os.environ.get("PROJECT_ID")
 
@@ -26,6 +27,29 @@ class LiveChatReplayDisabled(Exception):
 
 class RestrictedFromYoutube(Exception):
     pass
+
+def check_chatlog_exist(channel_id):
+    videofile_name = 'videos_v2/videolist' + channel_id + '.json'
+    videos = gcs_wrapper.get_gcs_file_to_dictlist(bucket_name_in, videofile_name)
+    all_video_ids = []
+    for video in videos:
+        all_video_ids.append(video['video_id'])
+
+    prefix = channel_id + '/'
+    chatlog_list = gcs_wrapper.get_gcs_files(bucket_name, prefix)
+    clist = []
+    for chatlog in chatlog_list:
+        clist.append(chatlog.split('/')[1])
+    video_ids = list(set(clist))
+
+    result = []
+    for video_id in all_video_ids:
+        if not video_id in video_ids:
+            result.append(video_id)
+
+    print(channel_id + " found " + ("%03d" % len(result)) + " untouched videos")
+
+    return(result)
 
 def get_ytInitialData(target_url, session):
     headers = {'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.116 Safari/537.36'}
@@ -143,13 +167,18 @@ def main(event, context):
             print(video_id + " Pub/Sub publish result " + future.result())
 
 if __name__ == '__main__':
+    # 手動起動した場合はChannelから動画リストを取得
+    # 取得済みでないものを取り出して全部Pub/Subに送る
+    # YoutubeのRateLimitを受けにくいはず
     channel_id = sys.argv[1]
-    video_id = sys.argv[2]
-    print(channel_id + '/' + video_id)
-    continuation = check_initial_continuation(channel_id, video_id)
-    if continuation:
-        print(continuation)
-        publisher = pubsub_v1.PublisherClient()
-        topic_path = publisher.topic_path(project_id, pubsub_topic)
-        future = publisher.publish(topic_path, "continuation".encode('utf-8'), continuation=continuation, channel_id=channel_id, video_id=video_id)
-        print(video_id + " Pub/Sub publish result " + future.result())
+    untouched_video_ids = check_chatlog_exist(channel_id)
+    print(untouched_video_ids)
+    for video_id in untouched_video_ids:
+        continuation = check_initial_continuation(channel_id, video_id)
+        if continuation:
+            print(continuation)
+            publisher = pubsub_v1.PublisherClient()
+            topic_path = publisher.topic_path(project_id, pubsub_topic)
+            future = publisher.publish(topic_path, "continuation".encode('utf-8'), continuation=continuation, channel_id=channel_id, video_id=video_id)
+            print(video_id + " Pub/Sub publish result " + future.result())
+

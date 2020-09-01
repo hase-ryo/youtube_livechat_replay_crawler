@@ -91,8 +91,8 @@ def get_chat_replay_from_continuation(video_id, continuation):
         try:
             ytInitialData = get_ytInitialData(continuation_prefix + continuation, session)
             if not ytInitialData:
+                print("video_id: " + video_id + " , continuation: " + continuation)
                 continuation = None
-                print("Cannot get ytInitialData")
                 break
 
             if not 'actions' in ytInitialData['continuationContents']['liveChatContinuation']:
