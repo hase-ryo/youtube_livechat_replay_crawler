@@ -47,6 +47,8 @@ def get_videos(channel_id, border_time):
         search_response = youtube.search().list(
           part = 'id',
           channelId = channel_id,
+          eventType = 'completed',
+          type = 'video',
           maxResults = 50,
           order = 'date',
           pageToken = nextpagetoken
