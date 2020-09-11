@@ -25,5 +25,4 @@ left outer join CT
   on V.video_id = CT.video_id 
 where
   time_diff(time_duration, chatlog_time, second) > 600
-limit 3
 ;
