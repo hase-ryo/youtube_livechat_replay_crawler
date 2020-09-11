@@ -33,18 +33,16 @@ def detect_lacked_log():
     query_str = query_str.format(project_id=project_id)
     bq = get_bq_client()
     result = bq.query(query_str)
-    obj_list = []
+    file_paths = []
     for row in result:
+        print(row)
         file_path = row['channel_id'] + '/' + row['video_id'] + '/'
-        if gcs_wrapper.check_gcs_file_exists(bucket_name, file_path):
-            objects = gcs_wrapper.get_gcs_files(bucket_name, file_path)
-            for obj in objects:
-                obj_list.append(obj)
+        file_paths.append(file_path)
 
-    return(obj_list)
+    return(file_paths)
 
 if __name__ == '__main__':
-    obj_list = detect_lacked_log()
-    for obj in obj_list:
-        gcs_wrapper.delete_gcs_file(bucket_name, obj)
+    file_paths = detect_lacked_log()
+    for file_path in file_paths:
+        gcs_wrapper.search_and_destroy_file(bucket_name, file_path)
 
