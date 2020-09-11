@@ -8,3 +8,4 @@ initial_livechat_check/.env
 initial_livechat_check/.env.yaml
 continuation_livechat_crawler/.env
 continuation_livechat_crawler/.env.yaml
+bigquery_ops/.env

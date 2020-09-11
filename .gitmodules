@@ -10,3 +10,6 @@
 [submodule "continuation_livechat_crawler/gcs_wrapper"]
 	path = continuation_livechat_crawler/gcs_wrapper
 	url = git@github.com:hase-ryo/gcs_wrapper.git
+[submodule "bigquery_ops/gcs_wrapper"]
+	path = bigquery_ops/gcs_wrapper
+	url = git@github.com:hase-ryo/gcs_wrapper.git
