@@ -167,13 +167,8 @@ def main(event, context):
             print(video_id + " Pub/Sub publish result " + future.result())
 
 if __name__ == '__main__':
-    # 手動起動した場合はChannelから動画リストを取得
-    # 取得済みでないものを取り出して全部Pub/Subに送る
-    # YoutubeのRateLimitを受けにくいはず
-    channel_id = sys.argv[1]
-    untouched_video_ids = check_chatlog_exist(channel_id)
-    print(untouched_video_ids)
-    for video_id in untouched_video_ids:
+    video_ids = sys.argv[1]
+    for video_id in video_ids:
         continuation = check_initial_continuation(channel_id, video_id)
         if continuation:
             print(continuation)
