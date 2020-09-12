@@ -83,7 +83,7 @@ def get_chat_replay_from_continuation(video_id, continuation):
     continuation_prefix = "https://www.youtube.com/live_chat_replay?continuation="
     session = requests.Session()
     result = []
-    while(pagecount < 200):
+    while(pagecount < 800):
         if not continuation:
             print("continuation is None. maybe hit the last chat segment")
             break
