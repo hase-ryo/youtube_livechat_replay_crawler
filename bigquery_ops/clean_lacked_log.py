@@ -34,21 +34,23 @@ def detect_lacked_log():
     bq = get_bq_client()
     result = bq.query(query_str)
     file_paths = []
-    video_ids = []
+    channels = {}
     for row in result:
-        print(row)
         file_path = row['channel_id'] + '/' + row['video_id'] + '/'
-        video_ids.append(row['video_id'])
         file_paths.append(file_path)
+        videos = channels.get(row['channel_id'], [])
+        videos.append(row['video_id'])
+        channels[row['channel_id']] = videos
 
-    return(file_paths,video_ids)
+    return(file_paths,channels)
 
 if __name__ == '__main__':
     flg = sys.argv[1]
-    file_paths, video_ids = detect_lacked_log()
+    file_paths, channels = detect_lacked_log()
     if flg == 'delete':
         for file_path in file_paths:
             gcs_wrapper.search_and_destroy_file(bucket_name, file_path)
     else:
-        print(','.join(video_ids))
+        for channel_id in channels.keys():
+            print(channel_id + ':' + ','.join(channels[channel_id]))
 

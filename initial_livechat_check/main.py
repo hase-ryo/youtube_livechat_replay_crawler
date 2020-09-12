@@ -167,7 +167,9 @@ def main(event, context):
             print(video_id + " Pub/Sub publish result " + future.result())
 
 if __name__ == '__main__':
-    video_ids = sys.argv[1]
+    # channel_idとvideo_idのリストを受け取る
+    channel_id = sys.argv[1]
+    video_ids = sys.argv[2].split(',')
     for video_id in video_ids:
         continuation = check_initial_continuation(channel_id, video_id)
         if continuation:

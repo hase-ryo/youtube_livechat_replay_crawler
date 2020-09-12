@@ -81,5 +81,5 @@ def load_chatlogs():
 
 
 if __name__ == '__main__':
-    # load_videos()
+    load_videos()
     load_chatlogs()
