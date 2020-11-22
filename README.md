@@ -70,5 +70,5 @@ Eventually, I also referred to Mr.nolannlum's chatdump.py script.
 https://gist.github.com/nolanlum/dd160e6ae752093aa5d98998bd0728a6
 
 I have a deep respect for these predecessors.
-Thanks for the great development.
-And YOU. I hope you will go further.
+THANKS FOR THE GREAT DEVELOPMENT.
+I hope you will improve further.
