@@ -29,7 +29,7 @@ Get the HTTP source from the Youtube video page.
 The arguments are channel id and video id.
 Determines if a chat log exists.
 Searches for URLs to be retrieved on a continuous basis.
-If it exists, send it to the Pub/Sub
+If it exists, send it to the Pub/Sub.
 
 ### continuation_livechat_crawler
 

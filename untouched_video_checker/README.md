@@ -16,7 +16,7 @@ Specify an environment variable in `.env.yaml` if you want to run it with Google
 
 #### GCS_BUCKET_NAME_OUT
 
-Specify backet name of your GCS bucket which stores chat log file.
+Specify bucket name of your GCS bucket which stores chat log file.
 
 #### GCS_BUCKET_NAME_IN
 
@@ -24,7 +24,7 @@ Specify bucket name of your GCS bucket which stores video list of specified chan
 
 #### PUBSUB_TOPIC
 
-Specify the Pub/Sub topic name to throw the video_id into.
+Specify the Pub/Sub topic name to publish the video_id .
 
 #### PROJECT_ID
 
