@@ -1,13 +1,14 @@
 # Youtube Livechat Replay Crawler
 
 This script's purpose is to get live chat comments from Youtube.
-The script is split into several parts.
-At this document, introduce overview of each scripts.
+For get chat log from Youtube video archives, use HTTP crawling.
 
-Each script depend on Google Cloud Projects.
+This script depend on Google Cloud Platform.
 For example, get/put file from/to Cloud Storage, or publish/subscribe message data from Cloud Pub/Sub.
 If you run this script only locally, customize main function and make sure to call only the functions you need.
 
+The script is split into several parts.
+At this document, introduce overview of each scripts.
 
 ## Scripts overview
 
@@ -41,7 +42,7 @@ Finish when the rest is gone.
 
 ### bigquery_ops
 
-Reads the data stored in GCS to BigQuery.
+Loads the data stored in GCS to BigQuery.
 It starts manually.
 If the total number of chat logs is low compared to the video time, mark it as uncollected video.
 Remove uncollected video.

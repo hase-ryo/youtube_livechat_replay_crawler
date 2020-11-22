@@ -1,6 +1,6 @@
 # bigquery_ops
 
-Reads the data stored in GCS to BigQuery.
+Loads the data stored in GCS to BigQuery.
 It starts manually.
 If the total number of chat logs is low compared to the video time, mark it as uncollected video.
 Remove uncollected video.
