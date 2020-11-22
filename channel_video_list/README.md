@@ -20,7 +20,7 @@ Specify your key of YOUTUBE DATA API.
 
 #### GCS_BUCKET_NAME
 
-Specify URI of your GCS bucket.
+Specify bucket name of your GCS bucket which stores video list of specified channel.
 
 #### GOOGLE_APPLICATION_CREDENTIALS (local run only)
 
