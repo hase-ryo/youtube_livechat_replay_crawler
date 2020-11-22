@@ -72,3 +72,8 @@ https://gist.github.com/nolanlum/dd160e6ae752093aa5d98998bd0728a6
 I have a deep respect for these predecessors.
 THANKS FOR THE GREAT DEVELOPMENT.
 I hope you will improve further.
+
+# License
+
+MIT
+
