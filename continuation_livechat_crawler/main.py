@@ -31,7 +31,12 @@ def get_ytInitialData(target_url, session):
         if 'ytInitialData' in script_text:
             for line in script_text.splitlines():
                 if 'ytInitialData' in line:
-                    return(json.loads(line.strip()[len('window["ytInitialData"] = '):-1]))
+                    if 'var ytInitialData =' in line:
+                        st = line.strip().find('var ytInitialData =') + 19
+                        return(json.loads(line.strip()[st:-10]))
+                    if 'window["ytInitialData"] =' in line:
+                        return(json.loads(line.strip()[len('window["ytInitialData"] = '):-1]))
+#                    return(json.loads(line.strip()[len('window["ytInitialData"] = '):-1]))
 
     if 'Sorry for the interruption. We have been receiving a large volume of requests from your network.' in str(soup):
         print("restricted from Youtube (Rate limit)")
