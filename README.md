@@ -52,6 +52,16 @@ Remove uncollected video.
 External sub-modules for performing various operations on GCS.
 Read GCS files into a dict type or list type, and vice versa.
 
+# If you run it locally
+
+Run `locally_run.py` in the `continuation_livechat_crawler` with `video_id`.
+
+```
+python continuation_livechat_crawler/locally_run.py ABCDEFG
+```
+
+`video_id` is taken from youtube URL, `https://www.youtube.com/watch?v=video_id`
+
 # Original Idea & Special Thanks
 
 The original idea of this script is by Mr.watagasi_'s this blog
