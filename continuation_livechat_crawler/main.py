@@ -82,13 +82,13 @@ def convert_chatreplay(renderer):
 
     return(chatlog)
 
-def get_chat_replay_from_continuation(video_id, continuation):
+def get_chat_replay_from_continuation(video_id, continuation, pagecount_limit = 800, is_locally_run = False):
     count = 1
     pagecount = 1
     continuation_prefix = "https://www.youtube.com/live_chat_replay?continuation="
     session = requests.Session()
     result = []
-    while(pagecount < 800):
+    while(pagecount < pagecount_limit):
         if not continuation:
             print("continuation is None. maybe hit the last chat segment")
             break
@@ -121,6 +121,8 @@ def get_chat_replay_from_continuation(video_id, continuation):
 
             continuation = get_continuation(ytInitialData)
             pagecount += 1
+            if is_locally_run:
+                print('\rPage %d' % pagecount, end='')
 
         except requests.ConnectionError:
             print("Connection Error")
