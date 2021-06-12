@@ -53,7 +53,10 @@ def get_continuation(ytInitialData):
 def convert_chatreplay(renderer):
     chatlog = {}
 
-    chatlog['user'] = renderer['authorName']['simpleText']
+    if 'authorName' in renderer:
+        chatlog['user'] = renderer['authorName']['simpleText']
+    else:
+        chatlog['user'] = ""
     chatlog['timestampUsec'] = renderer['timestampUsec']
     chatlog['time'] = renderer['timestampText']['simpleText']
 
@@ -140,6 +143,7 @@ def get_chat_replay_from_continuation(video_id, continuation, pagecount_limit = 
         except KeyError as e:
             print("KeyError")
             print(e)
+            print(item['liveChatTextMessageRenderer'])
             break
         except SyntaxError as e:
             print("SyntaxError")
