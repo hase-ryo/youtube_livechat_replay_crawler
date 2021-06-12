@@ -88,3 +88,10 @@ I hope you will improve further.
 
 MIT
 
+# Watch Out!!!
+
+Youtube is monetizing by showing ads to humans.
+In other words, it's not desirable for them to have machines watching Youtube. Because machines don't respond to ads.
+So you... when you run this program, make sure it doesn't touch the wrath of Youtube.
+If you are going to run this program in a corporation, I recommend you to go to Youtube's terms and conditions before you do anything fancy.
+If you're a private person, do it within the scope of Youtube's generosity.
