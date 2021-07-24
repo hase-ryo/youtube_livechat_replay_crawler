@@ -153,7 +153,7 @@ def get_new_videos(videos, completed_videos):
 
 def main(request):
     name = parse_request(request, 'name')
-    full_retry = parse_request(request, 'full_refresh')
+    full_retry = parse_request(request, 'full_retry')
     channels = gcs_wrapper.get_gcs_file_to_dictlist(bucket_name, 'channels.json')
 
     channel_id = channel_name_to_id(name)
@@ -176,6 +176,7 @@ def main(request):
 
     completed_videoinfos.extend(new_videoinfos)
 
+    file_path = 'videos_v2/videolist' + channel_id + '.json'
     gcs_wrapper.upload_gcs_file_from_dictlist(bucket_name, file_path,completed_videoinfos)
     print("Success to get and upload videos of " + escape(name))
 
@@ -186,7 +187,7 @@ if __name__ == '__main__':
     videos = get_videos(channel_id)
     completed_videoinfos = get_completed_videos(channel_id)
     comp_videos = []
-    if full_refresh == "yes":
+    if full_retry == "yes":
         print("Re-scan all videos " + name + " " + channel_id)
         completed_videoinfos = []
     for videoinfo in completed_videoinfos:
