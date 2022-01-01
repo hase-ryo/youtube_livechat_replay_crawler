@@ -17,7 +17,7 @@ if __name__ == '__main__':
         dmplist.append(json.dumps(line, ensure_ascii=False))
 
     output_file = './chatlog_replay_' + video_id + '.json'
-    with open(output_file, mode='w') as f:
+    with open(output_file, mode='w',encoding='utf-8') as f:
         f.write('\n'.join(dmplist))
 
     print('DONE!')
