@@ -74,7 +74,11 @@ def convert_chatreplay(renderer):
                 if 'text' in runs:
                     content += runs['text']
                 if 'emoji' in runs:
-                    content += runs['emoji']['shortcuts'][0]
+                    is_custom_emoji = runs['emoji'].get('isCustomEmoji')
+                    if is_custom_emoji:
+                        content += ''.join(runs['emoji']['shortcuts'])
+                    else:
+                        content += runs['emoji']['emojiId']
     chatlog['text'] = content
 
     if 'purchaseAmountText' in renderer:
